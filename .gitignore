@@ -1,0 +1,10 @@
+credentials/
+*.json.backup*
+*.bak
+logs/
+*.log
+__pycache__/
+memory_system/data/
+*.db
+.openclaw/
+.git/
