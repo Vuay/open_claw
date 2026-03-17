@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""增强版会话同步 - 完整问答格式"""
 import os, json, sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -78,7 +77,7 @@ def sync_sessions():
     sessions_path = Path(SESSIONS_DIR)
     if sessions_path.exists():
         for session_file in sessions_path.glob("*.jsonl"):
-            if '.deleted.' in session_file.name: continue
+            if '.deleted.' in session_file.name or '.lock' in session_file.name: continue
             session_id = session_file.stem
             messages = extract_conversation(session_file)
             if messages:
