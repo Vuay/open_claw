@@ -291,3 +291,256 @@ curl -X POST http://localhost:2323/memory/api/sync \
 ## 🤝 支持
 
 有问题请提交 Issue: https://github.com/Vuay/open_claw/issues
+
+---
+
+## 🌐 Clash/V2Ray 部署指南
+
+### 简介
+Clash是一个基于Go开发的代理工具，支持Shadowsocks、Vmess、Trojan等协议。
+
+### 服务信息
+- **服务名**: mihomo
+- **HTTP端口**: 7890
+- **SOCKS5端口**: 7891
+- **WebUI**: http://115.191.17.111:9090
+- **守护进程**: systemd
+
+### 安装步骤
+
+#### 1. 下载安装
+```bash
+# 下载mihomo
+mkdir -p /root/clash
+cd /root/clash
+
+# 根据架构选择
+# x86_64
+wget https://github.com/MetaCubeX/mihomo/releases/download/v1.18.4/mihomo-linux-amd64.gz
+gunzip mihomo-linux-amd64.gz
+mv mihomo-linux-amd64 mihomo
+chmod +x mihomo
+
+# ARM64
+# wget https://github.com/MetaCubeX/mihomo/releases/download/v1.18.4/mihomo-linux-arm64
+```
+
+#### 2. 创建配置目录
+```bash
+mkdir -p /etc/mihomo
+mkdir -p /var/log/mihomo
+```
+
+#### 3. 创建配置文件
+```bash
+# /etc/mihomo/config.yaml
+cat > /etc/mihomo/config.yaml << 'CONFIGEOF'
+# HTTP/SOCKS5 代理端口
+port: 7890
+socks-port: 7891
+allow-lan: true
+mode: rule
+log-level: info
+external-controller: 0.0.0.0:9090
+
+# Web UI
+external-ui: /usr/share/mihomo/ui
+
+# 代理组
+proxies: []
+
+# 代理组配置
+proxy-groups:
+  - name: 🔰 选择节点
+    type: select
+    proxies:
+      - ⚡ 自动选择
+      - 🔯 手动选择
+
+  - name: ⚡ 自动选择
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+
+  - name: 🔯 手动选择
+    type: select
+    proxies: []
+
+# 规则
+CONFIGEOF
+```
+
+#### 4. 创建Systemd服务
+```bash
+# /etc/systemd/system/mihomo.service
+cat > /etc/systemd/system/mihomo.service << 'SYSTEMDEOF'
+[Unit]
+Description=mihomo proxy
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/root/clash/mihomo -f /etc/mihomo/config.yaml
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+SYSTEMDEOF
+
+# 启用服务
+systemctl daemon-reload
+systemctl enable mihomo
+systemctl start mihomo
+```
+
+### 订阅配置
+
+#### 获取订阅
+从机场获取Clash订阅链接，然后在服务器上下载：
+
+```bash
+# 下载订阅
+curl -o /etc/mihomo/config.yaml "你的订阅链接"
+
+# 或者使用API转换
+curl -o /etc/mihomo/config.yaml "https://api.clash.dev/im?url=你的订阅链接"
+```
+
+#### 常用订阅API
+- https://api.clash.dev/im?url=xxx
+- https://sub.xeton.dev/sub?target=clash&url=xxx
+
+### 使用方法
+
+#### 命令行
+```bash
+# 查看状态
+systemctl status mihomo
+
+# 重启
+systemctl restart mihomo
+
+# 查看日志
+journalctl -u mihomo -f
+
+# 停止
+systemctl stop mihomo
+```
+
+#### 客户端配置
+
+##### Windows
+1. 下载Clash for Windows
+2. 导入配置或订阅
+3. 开启代理
+
+##### macOS
+1. 下载ClashX Pro
+2. 导入配置
+3. 开启代理
+
+##### Android
+1. 下载Clash for Android
+2. 导入配置
+3. 开启代理
+
+##### iOS
+1. 使用Stash或Shadowrocket
+2. 扫描二维码或导入配置
+
+##### 浏览器
+使用SwitchyOmega插件，配置:
+- 协议: HTTP
+- 服务器: 115.191.17.111
+- 端口: 7890
+
+##### 终端代理
+```bash
+# Linux/macOS
+export http_proxy=http://115.191.17.111:7890
+export https_proxy=http://115.191.17.111:7890
+
+# 或使用proxychains4
+```
+
+### 常用规则
+
+在配置文件中添加：
+```yaml
+rules:
+  # 直连中国IP
+  - GEOIP,CN,DIRECT
+  
+  # 广告拦截
+  - DOMAIN-SUFFIX,doubleclick.net,REJECT
+  - DOMAIN-SUFFIX,googlesyndication.com,REJECT
+  
+  # 其他走代理
+  - MATCH,🔰 选择节点
+```
+
+### 常见问题
+
+#### 1. 连接失败
+```bash
+# 检查服务状态
+systemctl status mihomo
+
+# 检查端口
+ss -tlnp | grep -E "7890|7891|9090"
+
+# 查看日志
+journalctl -u mihomo -n 50
+```
+
+#### 2. 速度慢
+- 切换节点
+- 检查本地网络
+- 开启UDP中转
+
+#### 3. 无法访问WebUI
+```bash
+# 检查端口
+ss -tlnp | grep 9090
+
+# 开放防火墙
+iptables -A INPUT -p tcp --dport 9090 -j ACCEPT
+```
+
+### 资源清理
+
+```bash
+# 清理日志
+echo "" > /var/log/mihomo/mihomo.log
+
+# 清理过期订阅
+rm -rf /tmp/clash-*
+```
+
+### 性能优化
+
+```yaml
+# /etc/mihomo/config.yaml 添加
+global-client-fingerprint: chrome
+
+# 开启HTTP/2
+http-listen: 0.0.0.0:7890
+
+# TCP连接复用
+tcp-concurrent: true
+```
+
+### 安全建议
+
+1. **定期更新订阅**
+2. **使用强密码**
+3. **限制端口访问**
+4. **开启防火墙**
+5. **定期备份配置**
+
+---
+
+## 📝 更新日志
+- 2026-03-17: 添加知识库、搜索、冥想系统
+- 2026-03-17: 添加Clash部署指南
