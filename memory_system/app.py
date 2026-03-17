@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 import sys
 sys.path.insert(0, '/root/.openclaw/memory_system')
+try:
+    from services.light_vector import LightVectorSearch
+    vector_search = LightVectorSearch('/root/.openclaw/memory_system/data/memory.db')
+except:
+    vector_search = None
+sys.path.insert(0, '/root/.openclaw/memory_system')
 from services.fts_search import FTSSearch
 import os, uuid, json
 from datetime import datetime, timedelta
@@ -142,17 +148,26 @@ def api_search():
     if not q: return jsonify([])
     
     r = []
-    ql = q.lower()
     
-    # 对话搜索 (使用LIKE)
-    for c in Conversation.query.all():
-        msg = c.message or ''
-        title = c.title or ''
-        if ql in msg.lower() or ql in title.lower():
-            r.append({'type':'conversation','id':c.id,'title':title[:80]})
-            if len(r) >= 20: break
+    # FTS5搜索
+    try:
+        import sqlite3
+        conn = sqlite3.connect('/root/.openclaw/memory_system/data/memory.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, title FROM memory_fts WHERE memory_fts MATCH ? LIMIT 20", (q,))
+        for row in cursor.fetchall():
+            r.append({'type':'conversation','id':row[0],'title':row[1]})
+        conn.close()
+    except Exception as e:
+        # FTS失败时使用LIKE后备
+        ql = q.lower()
+        for c in Conversation.query.all():
+            if ql in (c.message or '').lower() or ql in (c.title or '').lower():
+                r.append({'type':'conversation','id':c.id,'title':(c.title or '')[:80]})
+                if len(r) >= 20: break
     
     # 文件搜索
+    ql = q.lower()
     for m in Memory.query.all():
         if ql in (m.content or '').lower():
             r.append({'type':'file','filename':m.filename})
@@ -270,6 +285,53 @@ def query_memory():
         'context': context,
         'results': results
     })
+
+
+
+
+# 向量搜索API
+@app.route('/memory/api/vector_search')
+def vector_search_api():
+    if not verify_token(get_t()): return '{"error":"Unauthorized"}', 401, {'Content-Type':'application/json'}
+    query = request.args.get('q', '')
+    if not query: return jsonify({'results': []})
+    
+    global vector_search
+    if vector_search is None:
+        try:
+            vector_search = LightVectorSearch('/root/.openclaw/memory_system/data/memory.db')
+        except:
+            return jsonify({'results': [], 'error': '向量索引未构建'})
+    
+    try:
+        results = vector_search.search(query, top_k=5)
+        return jsonify({'results': results, 'query': query})
+    except Exception as e:
+        return jsonify({'results': [], 'error': str(e)})
+
+# 构建向量索引
+@app.route('/memory/api/vector_build')
+def vector_build():
+    if not verify_token(get_t()): return '{"error":"Unauthorized"}', 401, {'Content-Type':'application/json'}
+    global vector_search
+    
+    try:
+        import sqlite3
+        conn = sqlite3.connect('/root/.openclaw/memory_system/data/memory.db')
+        c = conn.cursor()
+        c.execute('SELECT id, message FROM conversation WHERE message IS NOT NULL AND message != ""')
+        rows = c.fetchall()
+        conn.close()
+        
+        if rows:
+            texts = [r[1][:2000] for r in rows]
+            ids = [r[0] for r in rows]
+            vector_search = LightVectorSearch('/root/.openclaw/memory_system/data/memory.db')
+            vector_search.build_index(texts, ids)
+            return jsonify({'status': 'success', 'count': len(ids)})
+        return jsonify({'status': 'no_data'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 if __name__ == '__main__':
