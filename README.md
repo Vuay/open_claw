@@ -303,7 +303,7 @@ Clash是一个基于Go开发的代理工具，支持Shadowsocks、Vmess、Trojan
 - **服务名**: mihomo
 - **HTTP端口**: 7890
 - **SOCKS5端口**: 7891
-- **WebUI**: http://115.191.17.111:9090
+- **WebUI**: http://YOUR_SERVER_IP:9090
 - **守护进程**: systemd
 
 ### 安装步骤
@@ -452,14 +452,14 @@ systemctl stop mihomo
 ##### 浏览器
 使用SwitchyOmega插件，配置:
 - 协议: HTTP
-- 服务器: 115.191.17.111
+- 服务器: YOUR_SERVER_IP
 - 端口: 7890
 
 ##### 终端代理
 ```bash
 # Linux/macOS
-export http_proxy=http://115.191.17.111:7890
-export https_proxy=http://115.191.17.111:7890
+export http_proxy=http://YOUR_SERVER_IP:7890
+export https_proxy=http://YOUR_SERVER_IP:7890
 
 # 或使用proxychains4
 ```
