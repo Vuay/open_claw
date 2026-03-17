@@ -1,0 +1,30 @@
+{
+  "time": "2026-03-17T23:48:23.166461",
+  "conversations_count": 1,
+  "insights": {
+    "key_concepts": [
+      "clash",
+      "binary",
+      "assistant",
+      "install",
+      "check",
+      "this",
+      "github",
+      "user",
+      "mihomo",
+      "script",
+      "downloads",
+      "from",
+      "directory",
+      "preflight",
+      "they"
+    ],
+    "common_questions": [],
+    "solutions": [
+      " **或者运行安装脚本**（但需要网络能访问 GitHub）：\n```bash\ncd /root/clash-for-linux-install-master/clash-for-linux-install-master\n",
+      "\n\n这个目录只是安装脚本，没有 Clash 二进制内核",
+      "\n\n\n🤖 assistant: [思考] 这个安装脚本需要 Clash 的二进制文件，它会在安装过程中下载"
+    ]
+  },
+  "prompts": "### 关键概念\nclash, binary, assistant, install, check, this, github, user, mihomo, script, downloads, from, directory, preflight, they\n\n### 最佳实践\n-  **或者运行安装脚本**（但需要网络能访问 GitHub）：\n```bash\ncd /root/clash-for-linux-install-master/clash-for-linux-install-master\n\n- \n\n这个目录只是安装脚本，没有 Clash 二进制内核\n- \n\n\n🤖 assistant: [思考] 这个安装脚本需要 Clash 的二进制文件，它会在安装过程中下载"
+}
