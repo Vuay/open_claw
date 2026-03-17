@@ -36,7 +36,7 @@ class Token(db.Model):
     expires_at = db.Column(db.DateTime)
     ip = db.Column(db.String(64))
 
-MEMORY_KEY = "miao669"
+MEMORY_KEY = "admin"
 # 初始化FTS搜索
 fts_search = FTSSearch()
 WORKSPACE = "/root/.openclaw/workspace"
