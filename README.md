@@ -11,12 +11,29 @@
 | `nginx/` | Nginx反向代理配置 |
 | `scripts/` | 同步和召回脚本 |
 
-## 🔑 默认密钥
+## 🔐 修改密钥
 
-- **用户名**: admin
-- **密码**: admin
+### 方法1: 修改记忆系统密钥
 
-修改密钥：编辑 `memory_system/app.py`，修改 `MEMORY_KEY` 值
+编辑 `memory_system/app.py`:
+
+```python
+# 找到这行
+MEMORY_KEY = "admin"
+
+# 修改为你的密钥
+MEMORY_KEY = "你的新密钥"
+```
+
+### 方法2: 修改OpenClaw认证
+
+编辑 `nginx/openclaw` 文件中的Basic Auth配置：
+
+```
+# 删除或注释这行
+auth_basic "OpenClaw 登录";
+auth_basic_user_file /etc/nginx/.htpasswd;
+```
 
 ## 🚀 部署步骤
 
