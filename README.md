@@ -11,6 +11,13 @@
 | `nginx/` | Nginx反向代理配置 |
 | `scripts/` | 同步和召回脚本 |
 
+## 🔑 默认密钥
+
+- **用户名**: admin
+- **密码**: admin
+
+修改密钥：编辑 `memory_system/app.py`，修改 `MEMORY_KEY` 值
+
 ## 🚀 部署步骤
 
 ### 1. 安装依赖
@@ -36,7 +43,7 @@ pm2 save
 
 - OpenClaw: `https://your-domain.com/`
 - 记忆系统: `https://your-domain.com/memory`
-- 密钥: `miao669`
+- 默认密钥: `admin`
 
 ## 📝 API
 
